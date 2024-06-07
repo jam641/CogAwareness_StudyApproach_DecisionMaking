@@ -1,0 +1,84 @@
+---
+title: "Study 2 Perception Means"
+subtitle: "Cognitive Awareness & Study Approach Decision Making"
+author: "Jessica Macaluso"
+date: "2024-06-07"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+*Load Packages*
+```{r, packages}
+library(psych)
+library(tidyverse)
+```
+
+*Disable Scientific Notation*
+```{r, disable sci notation}
+options(scipen = 999)
+```
+
+## Study 2 Set Up
+
+*Read in Data*
+```{r, read in data}
+study2 <- read.csv("study2-extendedtest-final.csv")
+# Blocked -> Interleaved (rows 2-189)
+# Interleaved -> Blocked (rows 190-379)
+```
+
+*Variables of Interest*
+
+
+Mental Effort (X)
+
+
+Familiarity/Habits (X)
+
+
+Perceived Learning (M)
+
+
+Final Strategy (Y)
+
+*Blocked Averages*
+```{r, blocked}
+## Mental Effort
+study2$effort_blocked <- ((study2$TiredBlocked + study2$MentallyExhaustingBlocked +
+      study2$DifficultBlocked + study2$BoringBlocked) / 4)
+summary(study2$effort_blocked) # mean of 3.14, less mentally effortful
+
+## Perceived Learning
+study2$learn_blocked <- ((study2$RememberAnswersBlocked + study2$MemoryAnswersBlocked +
+      study2$HelpingToLearnBlocked + study2$LearnAnswersBlocked) / 4)
+summary(study2$learn_blocked) # mean of 3.36, perceive more learning
+
+## Familiarity/Habits 
+study2$habits_blocked <- ((study2$ClassStructureBlocked + study2$FamiliarMethodBlocked +
+      study2$NewExerciseBlocked + study2$MatchHabitsBlocked)/ 4)
+summary(study2$habits_blocked) # mean of 3.17, more familiar/habitual
+```
+
+*Interleaved Averages*
+```{r, interleaved}
+# Mental Effort
+study2$effort_interleaved <- ((study2$TiredInterleaved + study2$MentallyExhaustingInterleaved +
+    study2$DifficultInterleaved + study2$BoringInterleaved) / 4)
+summary(study2$effort_interleaved) # mean of 3.54, more mentally effortful
+
+## Perceived Learning
+study2$learn_interleaved <- ((study2$RememberAnswersInterleaved + study2$MemoryAnswersInterleaved +
+    study2$HelpingToLearnInterleaved + study2$LearnAnswersInterleaved) / 4)
+summary(study2$learn_interleaved) # mean of 2.87, perceived less learning
+
+## Familiar/Habits
+study2$habits_interleaved <- ((study2$ClassStructureInterleaved + study2$FamiliarMethodInterleaved +
+    study2$NewExerciseInterleaved + study2$MatchHabitsInterleaved) / 4)
+summary(study2$habits_interleaved) # mean of 2.74, less familiar/habitual
+```
+
+
+

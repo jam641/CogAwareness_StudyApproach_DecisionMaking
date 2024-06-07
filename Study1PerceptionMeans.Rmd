@@ -1,0 +1,86 @@
+---
+title: "Study 1 Perception Means"
+subtitle: "Cognitive Awareness & Study Approach Decision Making"
+author: "Jessica Macaluso"
+date: "2024-06-07"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+*Load Packages*
+```{r, packages}
+library(psych)
+library(tidyverse)
+```
+
+*Disable Scientific Notation*
+```{r, disable sci notation}
+options(scipen = 999)
+```
+
+## Study 1 Set Up
+
+*Read in Data*
+```{r, read in data}
+list1 <- read.csv("list1_exp1.csv")
+list2 <- read.csv("list2_exp1.csv")
+study1 <- read.csv("study1-final.csv")
+# Blocked -> Interleaved (list_one) rows 2-180
+# Interleaved -> Blocked (list_two) rows 181-329
+```
+
+*Variables of Interest*
+
+
+Mental Effort (X)
+
+
+Familiarity/Habits (X)
+
+
+Perceived Learning (M)
+
+
+Final Strategy (Y)
+
+*Blocked Averages*
+```{r, blocked}
+## Mental Effort
+study1$effort_blocked <- ((study1$TiredBlocked + study1$MentallyExhaustingBlocked +
+                             study1$DifficultBlocked + study1$BoringBlocked) / 4)
+summary(study1$effort_blocked) # mean of 3.10, less mentally effortful
+
+## Perceived Learning
+study1$learn_blocked <- ((study1$RememberAnswersBlocked + study1$MemoryAnswersBlocked +
+                            study1$HelpingToLearnBlocked + study1$LearnAnswersBlocked) / 4)
+summary(study1$learn_blocked) # mean of 3.45, perceive more learning
+
+## Familiarity/Habits 
+study1$habits_blocked <- ((study1$ClassStructureBlocked + study1$FamiliarBlocked +
+                             study1$NewBlocked + study1$StudyHabitsBlocked)/ 4)
+summary(study1$habits_blocked) # mean of 3.29, more familiar/habitual
+```
+
+*Interleaved Averages*
+```{r, interleaved}
+# Mental Effort
+study1$effort_interleaved <- ((study1$TiredInterleaved + study1$MentallyExhaustingInterleaved  +
+                                 study1$DifficultInterleaved + study1$BoringInterleaved) / 4)
+summary(study1$effort_interleaved) # mean of 3.73, more mentally effortful
+
+## Perceived Learning
+study1$learn_interleaved <- ((study1$RememberAnswersInterleaved + study1$MemoryAnswersInterleaved +
+                                study1$HelpingToLearnInterleaved + study1$LearnAnswersInterleaved) / 4)
+summary(study1$learn_interleaved) # mean of 2.84, perceived less learning
+
+## Familiar/Habits
+study1$habits_interleaved <- ((study1$ClassStructureInterleaved + study1$FamiliarInterleaved +
+                                 study1$NewInterleaved + study1$StudyHabitsInterleaved) / 4)
+summary(study1$habits_interleaved) # mean of 2.70, less familiar/habitual
+```
+
+
+

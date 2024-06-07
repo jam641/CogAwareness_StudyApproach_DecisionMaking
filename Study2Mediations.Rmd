@@ -1,0 +1,174 @@
+---
+title: "Study 2 Mediations"
+subtitle: "Cognitive Awareness & Study Approach Decision Making"
+author: "Jessica Macaluso"
+date: "2024-06-07"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Abstract
+
+Why do learners not choose ideal study strategies when learning? Past research suggests that learners frequently misinterpret the effort affiliated with efficient strategies as being indicative of poor learning. Expanding on past findings, we explored the integration of study habits into this model. We conducted two experiments where learners experienced two contrasting strategies—blocked and interleaved schedules—to learn to discriminate between images of bird families. After experiencing each strategy, learners rated each according to its perceived effort, learning, and familiarity. Next, learners were asked to choose which strategy they would use in the future. Mediation analyses revealed, for both experiments, that the more mentally effortful interleaving felt, the less learners felt they learned, and the less likely learners were to use it in future learning. Further, in this study, strategy familiarity predicted strategy choice, also mediated by learners’ perceived learning. Additionally, Study 2 verified that, in contrast to learners’ judgments, the less familiar interleaving schedule resulted in better learning. Consequently, learners are making ineffective learning judgments based on their perceptions of effort and familiarity and, therefore, do not make use of optimal study strategies in self-regulated learning decisions.
+
+*Load Packages*
+```{r, packages}
+library(psych)
+library(tidyverse)
+library(mediation)
+library(powerMediation)
+```
+
+*Disable Scientific Notation and set.seed*
+```{r, disable sci notation and set seed}
+options(scipen = 999)
+set.seed(1)
+```
+
+## Study 2 Set Up
+
+*Read in Data*
+```{r, read in data}
+study2 <- read.csv("study2-extendedtest-final.csv")
+# Blocked -> Interleaved (rows 2-189)
+# Interleaved -> Blocked (rows 190-379)
+```
+
+*Variables of Interest*
+
+
+Mental Effort (X)
+
+
+Familiarity/Habits (X)
+
+
+Perceived Learning (M)
+
+
+Final Strategy (Y)
+
+
+
+*Mental Effort*
+```{r, mental effort}
+study2$effort_diff <- ((study2$TiredInterleaved + study2$MentallyExhaustingInterleaved +
+                        study2$DifficultInterleaved + study2$BoringInterleaved) / 4) -
+                     ((study2$TiredBlocked + study2$MentallyExhaustingBlocked +
+                        study2$DifficultBlocked + study2$BoringBlocked) / 4)
+summary(study2$effort_diff)
+```
+
+*Perceived Learning*
+```{r, perceived learning}
+study2$learn_diff <- ((study2$RememberAnswersInterleaved + study2$MemoryAnswersInterleaved +
+                         study2$HelpingToLearnInterleaved + study2$LearnAnswersInterleaved) / 4) - 
+                    ((study2$RememberAnswersBlocked + study2$MemoryAnswersBlocked +
+                       study2$HelpingToLearnBlocked + study2$LearnAnswersBlocked) /4 )
+summary(study2$learn_diff)
+```
+
+*Familiarity/Habits*
+```{r, familiarity habits}
+study2$habits_diff <- ((study2$ClassStructureInterleaved + study2$FamiliarMethodInterleaved +
+                         study2$NewExerciseInterleaved + study2$MatchHabitsInterleaved) / 4) -
+                     ((study2$ClassStructureBlocked + study2$FamiliarMethodBlocked +
+                        study2$NewExerciseBlocked + study2$MatchHabitsBlocked)/ 4)
+summary(study2$habits_diff)
+```
+
+*Final Study Strategy Choice*
+```{r, study strategy choice}
+study2$strategy_choice <- (study2$ChooseActivity)
+
+# Dummy Variable Coding for Binomial Family
+study2$chooseInterleaved <- ifelse(study2$strategy_choice == "Blocked", 0, 1)
+```
+
+## Study 2 Mental Effort Mediation
+
+*a path*
+```{r, a path}
+# a path
+med.effort <- lm(learn_diff ~ effort_diff, data = study2)
+summary(med.effort)
+  # effort_diff = a path (p < .001)
+    # R2 = 0.26
+```
+
+*c prime and b path*
+```{r, c prime and b path}
+# c' path and b path
+med.learn1 <- glm(chooseInterleaved ~ effort_diff + learn_diff, data = study2, family=binomial)
+summary(med.learn1)
+  # learn_diff = b path (p < .001)
+    # partial R2 = 0.33
+  # c' (direct) = effort_diff (p = 0.47)
+    # partial R2 = 0.00
+```
+
+*c path*
+```{r, c path}
+# c path
+med.learn2 <- glm(chooseInterleaved ~ effort_diff, data = study2, family=binomial)
+summary(med.learn2)
+    # effort_diff = c path (indirect) (p < .001)
+    # partial R2 = 0.15
+```
+
+*Mediation for Mental Effort*
+```{r, mediation}
+mediation_1 <- mediate(med.effort, med.learn1, sims=1000, boot=TRUE, treat = "effort_diff", mediator = "learn_diff")
+summary(mediation_1)
+         # p < .001
+```
+
+*Correlation with Mental Effort and Final Study Strategy Decision*
+```{r, correlation}
+cor.test(study2$effort_diff, study2$chooseInterleaved, method = "pearson") #-.31 (p<.001)
+```
+
+## Study 2 Familiarity Mediation
+
+*a path*
+```{r, a path 2}
+# a path
+med.habit <- lm(learn_diff ~ habits_diff, data = study2)
+summary(med.habit)
+  # habits_diff output = a path (p < .001)
+    # R2 = 0.05
+```
+
+*c prime and b path*
+```{r, c prime and b path 2}
+# c' path and b path
+med.learn1 <- glm(chooseInterleaved ~ habits_diff + learn_diff, data = study2, family=binomial)
+summary(med.learn1)
+  # learn_diff = b path (p < .001)
+    # partial R2 = 0.42
+  # c' (direct) = habits_diff (p = 0.77)
+    # partial R2 = 0.04
+```
+
+*c path*
+```{r, c path 2}
+# c path
+med.learn2 <- glm(chooseInterleaved ~ habits_diff, data = study2, family=binomial)
+summary(med.learn2)
+  # habits_diff = c path (indirect) (p = 0.06) # marginal significance
+    # partial R2 = 0.05
+```
+
+*Mediation for Familiarity/Habits*
+```{r, mediation2}
+mediation_2 <- mediate(med.habit, med.learn1, sims=1000, boot=TRUE, treat = "habits_diff", mediator = "learn_diff")
+summary(mediation_2) # ACME = Average calculated mediation effect 
+```
+
+*Correlation with Familiarity/Habits and Final Study Strategy Decision*
+```{r, correlation2}
+cor.test(study2$habits_diff, study2$chooseInterleaved, method = "pearson") # .10 (p=.05)
+```

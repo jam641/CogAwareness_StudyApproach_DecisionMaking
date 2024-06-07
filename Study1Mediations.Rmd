@@ -1,0 +1,182 @@
+---
+title: "Study 1 Mediations"
+subtitle: "Cognitive Awareness & Study Approach Decision Making"
+author: "Jessica Macaluso"
+date: "2024-06-07"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Abstract
+
+Why do learners not choose ideal study strategies when learning? Past research suggests that learners frequently misinterpret the effort affiliated with efficient strategies as being indicative of poor learning. Expanding on past findings, we explored the integration of study habits into this model. We conducted two experiments where learners experienced two contrasting strategies—blocked and interleaved schedules—to learn to discriminate between images of bird families. After experiencing each strategy, learners rated each according to its perceived effort, learning, and familiarity. Next, learners were asked to choose which strategy they would use in the future. Mediation analyses revealed, for both experiments, that the more mentally effortful interleaving felt, the less learners felt they learned, and the less likely learners were to use it in future learning. Further, in this study, strategy familiarity predicted strategy choice, also mediated by learners’ perceived learning. Additionally, Study 2 verified that, in contrast to learners’ judgments, the less familiar interleaving schedule resulted in better learning. Consequently, learners are making ineffective learning judgments based on their perceptions of effort and familiarity and, therefore, do not make use of optimal study strategies in self-regulated learning decisions.
+
+*Load Packages*
+```{r, packages}
+library(psych)
+library(tidyverse)
+library(mediation)
+library(powerMediation)
+```
+
+*Disable Scientific Notation and set.seed*
+```{r, disable sci notation and set seed}
+options(scipen = 999)
+set.seed(1)
+```
+
+## Study 1 Set Up
+
+*Read in Data*
+```{r, read in data}
+study1 <- read.csv("study1-final.csv")
+# Blocked -> Interleaved (list_one) rows 2-180
+# Interleaved -> Blocked (list_two) rows 181-329
+```
+
+*Variables of Interest*
+
+
+Mental Effort (X)
+
+
+Familiarity/Habits (X)
+
+
+Perceived Learning (M)
+
+
+Final Strategy (Y)
+
+
+
+*Mental Effort*
+```{r, mental effort}
+study1$effort_diff <- ((study1$TiredInterleaved + study1$MentallyExhaustingInterleaved +
+                          study1$DifficultInterleaved + study1$BoringInterleaved) / 4) -
+                      ((study1$TiredBlocked + study1$MentallyExhaustingBlocked +
+                           study1$DifficultBlocked + study1$BoringBlocked) / 4)
+summary(study1$effort_diff)
+
+effort_diff_x <- study1%>% filter(is.na(effort_diff) == FALSE)
+```
+
+*Perceived Learning*
+```{r, perceived learning}
+study1$learn_diff <- ((study1$RememberAnswersInterleaved + study1$MemoryAnswersInterleaved +
+                         study1$HelpingToLearnInterleaved + study1$LearnAnswersInterleaved) / 4) - 
+                      ((study1$RememberAnswersBlocked + study1$MemoryAnswersBlocked +
+                          study1$HelpingToLearnBlocked + study1$LearnAnswersBlocked) /4 )
+summary(study1$learn_diff)
+```
+
+*Familiarity/Habits*
+```{r, familiarity habits}
+study1$habits_diff <- ((study1$ClassStructureInterleaved + study1$FamiliarInterleaved +
+                        study1$NewInterleaved + study1$StudyHabitsInterleaved) / 4) -
+                     ((study1$ClassStructureBlocked + study1$FamiliarBlocked +
+                          study1$NewBlocked + study1$StudyHabitsBlocked)/ 4)
+summary(study1$habits_diff)
+```
+
+*Final Study Strategy Choice*
+```{r, study strategy choice}
+study1$strategy_choice <- (study1$ChooseActivity)
+
+# Dummy Variable Coding for Binomial Family
+study1$chooseInterleaved <- ifelse(study1$strategy_choice == "Blocked", 0, 1)
+```
+
+## Study 1 Mental Effort Mediation
+
+*a path*
+```{r, a path}
+# a path
+med.effort <- lm(learn_diff ~ effort_diff, data = study1)
+summary(med.effort)
+  # effort_diff = a path (p < .001)
+    # R2 = 0.28
+```
+
+*c prime and b path*
+```{r, c prime and b path}
+# c' path and b path
+med.learn1 <- glm(chooseInterleaved ~ effort_diff + learn_diff, data = study1, family=binomial)
+summary(med.learn1)
+  # learn_diff = b path (p < .001)
+    # partial R2 = 0.36
+  # c' (direct) = effort_diff (p = 0.39)
+    # partial R2 = 0.00
+```
+
+*c path*
+```{r, c path}
+# c path
+med.learn2 <- glm(chooseInterleaved ~ effort_diff, data = study1, family=binomial)
+summary(med.learn2)
+  # effort_diff = c (indirect) path (p < .001)
+    # partial R2 = 0.12
+```
+
+*Mediation for Mental Effort*
+```{r, mediation}
+mediation_1 <- mediate(med.effort, med.learn1, sims=1000, boot=TRUE, treat = "effort_diff", mediator = "learn_diff")
+summary(mediation_1)
+  # p < .001
+# ACME = average causal mediation effect
+# ADE = average direct effect
+# Total Effect 
+# Prop. Mediated = proportion of the effect of the IV on the DV that goes through
+  # the mediator. (ACME/total effect)
+```
+
+*Correlation with Mental Effort and Final Study Strategy Decision*
+```{r, correlation}
+cor.test(study1$effort_diff, study1$chooseInterleaved, method = "pearson") # r = -.26 (p<.0001)
+```
+
+## Study 1 Familiarity Mediation
+
+*a path*
+```{r, a path 2}
+# a path
+med.habit <- lm(learn_diff ~ habits_diff, data = study1)
+summary(med.habit)
+  # habits_diff = a path (p < .001)
+    # R2 = 0.09
+```
+
+*c prime and b path*
+```{r, c prime and b path 2}
+# c' path and b path
+med.learn1 <- glm(chooseInterleaved ~ habits_diff + learn_diff, data = study1, family=binomial)
+summary(med.learn1)
+  # learn_diff = b path (p < .001)
+    # partial R2 = 0.40
+  # c' (direct) = habits_diff (p = 0.39)
+    # partial R2 = 0.00
+```
+
+*c path*
+```{r, c path 2}
+# c path
+med.learn2 <- glm(chooseInterleaved ~ habits_diff, data = study1, family=binomial)
+summary(med.learn2)
+  # habits_diff = c (indirect) path (p = 0.002) # marginal significance
+    # partial R2 = 0.06
+```
+
+*Mediation for Familiarity/Habits*
+```{r, mediation2}
+mediation_2 <- mediate(med.habit, med.learn1, sims=1000, boot=TRUE, treat = "habits_diff", mediator = "learn_diff")
+summary(mediation_2) # ACME = Average calculated mediation effect 
+  # p < .001
+```
+
+*Correlation with Familiarity/Habits and Final Study Strategy Decision*
+```{r, correlation2}
+cor.test(study1$habits_diff, study1$chooseInterleaved, method = "pearson") # r = .18 (p=.001)
+```
